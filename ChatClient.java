@@ -3,27 +3,40 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
+import java.util.List;
 
-public class ChatClient extends UnicastRemoteObject implements ChatClient_itf {
-    private String name;
-    private int id;
+public class ChatClient extends UnicastRemoteObject implements ChatClient_itf  {
+    private String username;
+    //private int id;
+    private ChatServer_itf server;
 
-    public ChatClient(String name) throws RemoteException {
-        this.name = name;
+    public ChatClient(String username /*, int id*/) throws RemoteException {
+        this.username = username;
+        //this.id=id;
     }
 
-    public String getName() {
-        return name;
+    public String getUsername() {
+        return username;
+    }
+    public void setUsername(String username){
+        this.username = username;
     }
 
-    public int getId() {
-        return id;
+    //public int getId() {
+    //    return id;
+    //}
+
+    //public void setId(int id) {
+    //    this.id = id;
+    //}
+
+    public List<Message> getMessageHistory(int nbMessage) throws RemoteException{
+        return server.getMessageHistory(nbMessage);
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public void sendMessage(String message) throws RemoteException {
+        server.broadcastMessage(message, username);
     }
-
 
     @Override
     public void receiveMessage(String message, String username) {
@@ -50,8 +63,9 @@ public class ChatClient extends UnicastRemoteObject implements ChatClient_itf {
             ChatClient chatClient = new ChatClient(username);
             Registry registry = LocateRegistry.getRegistry(host, port);
             ChatServer_itf chatServer = (ChatServer_itf) registry.lookup("ChatServer");
-            int id = chatServer.registerClient(chatClient, username);
-            chatClient.setId(id);
+            chatClient.setUsername(username);
+            //int id = chatServer.registerClient(chatClient, username);
+            //chatClient.setId(id);
 
             
             // Welcome message. Exits if user types "exit". Otherwise, sends message to server. History in order to see previous messages.
@@ -66,7 +80,10 @@ public class ChatClient extends UnicastRemoteObject implements ChatClient_itf {
                     chatServer.unregisterClient(chatClient, username);
                     System.exit(0);
                 } else if (message.equalsIgnoreCase("history")) {
-                    chatServer.getMessageHistory((ChatClient_itf) chatClient);
+                    List<Message> history = chatClient.getMessageHistory(25);
+                    for (Message m : history) {
+                        System.out.println(""+m.getUsername()+" : "+m.getMessage());
+                    }
 
                 } else {
                     try {
