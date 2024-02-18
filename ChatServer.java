@@ -86,6 +86,12 @@
                     if(parts.length<3){
                         continue;
                     }
+                    if(parts.length>3){
+                    parts[2] = parts[2];
+                    for(int i=3; i<parts.length; i++){
+                        parts[2] = parts[2] + parts[i];
+                    }
+                }
                     long timestamp = Long.parseLong(parts[0]);
                     String username = parts[1];
                     String text = parts[2];
@@ -115,6 +121,12 @@
                     if(parts.length<3){
                         continue;
                     }
+                    if(parts.length>3){
+                    parts[2] = parts[2];
+                    for(int i=3; i<parts.length; i++){
+                        parts[2] = parts[2] + parts[i];
+                    }
+                }
                     long timestamp = Long.parseLong(parts[0]);
                     String username = parts[1];
                     String text = parts[2];
