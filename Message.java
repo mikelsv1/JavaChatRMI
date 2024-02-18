@@ -1,11 +1,9 @@
-import java.io.Serializable;
 import java.util.Date;
 
-public class Message implements Serializable{
+public class Message {
 
     private String message;
     private String username;
-
     private Date timestamp;
 
     public Message(String message, String username) {
@@ -13,7 +11,8 @@ public class Message implements Serializable{
         this.username = username;
         this.timestamp = new Date();
     }
-    public Message(Date timestamp, String username, String message) {
+
+    public Message(String message, String username, Date timestamp) {
         this.message = message;
         this.username = username;
         this.timestamp = timestamp;
@@ -34,6 +33,6 @@ public class Message implements Serializable{
     @Override
     public String toString() {
         return timestamp + " " + username + ": " + message;
-    }
+    } 
     
 }
