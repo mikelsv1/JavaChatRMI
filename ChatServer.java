@@ -77,34 +77,39 @@ public class ChatServer extends UnicastRemoteObject implements ChatServer_itf {
         }
     }
 
-    private static void loadAllMessagesFromFile() {
+    private static void loadAllMessagesFromFile() throws IOException {
         try (BufferedReader reader = new BufferedReader(new FileReader(HISTORY_FILE_PATH))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 String[] parts = line.split(";");
-                if (parts.length < 3) {
-                    continue;
-                }
+                long timestamp = Long.parseLong(parts[0]);
+                String username = parts[1];
+                String text = "";
                 if (parts.length > 3) {
                     parts[2] = parts[2];
                     for (int i = 3; i < parts.length; i++) {
                         parts[2] = parts[2] + parts[i];
                     }
+                    text = parts[2];
                 }
-                long timestamp = Long.parseLong(parts[0]);
-                String username = parts[1];
-                String text = parts[2];
-                if (text.equals("START OF NEW SESSION")) {
-                    continue;
+                else if (parts.length < 3) {
+                    text = "";                    
+                }
+                else{
+                    text = parts[2];
                 }
                 messages.add(new Message(text, username, new Date(timestamp)));
             }
         } catch (IOException e) {
+            BufferedWriter writer = new BufferedWriter(new FileWriter(HISTORY_FILE_PATH, true));
+            String timestamp = new Date().getTime() + "";
+            writer.write(timestamp + ";" + "SERVER" + ";" + "START OF NEW SESSION\n");
+            writer.close();
             System.err.println("Error loading messages from file: " + e.getMessage());
         }
     }
 
-    private static void loadSessionMessagesFromFile() {
+    private static void loadSessionMessagesFromFile() throws IOException{
         try {
             BufferedReader reader = new BufferedReader(new FileReader(HISTORY_FILE_PATH));
             String line;
@@ -131,13 +136,20 @@ public class ChatServer extends UnicastRemoteObject implements ChatServer_itf {
                     }
                     text = parts[2];
                 }
-                if (parts.length < 3) {
+                else if (parts.length < 3) {
                     text = "";                    
+                }
+                else{
+                    text = parts[2];
                 }
                 messages.add(new Message(text, username, new Date(timestamp)));
             }
             reader.close();
         } catch (IOException e) {
+            BufferedWriter writer = new BufferedWriter(new FileWriter(HISTORY_FILE_PATH, true));
+            String timestamp = new Date().getTime() + "";
+            writer.write(timestamp + ";" + "SERVER" + ";" + "START OF NEW SESSION\n");
+            writer.close();
             System.err.println("Error loading messages from file: " + e.getMessage());
 
         }
