@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-
 public class ChatServer extends UnicastRemoteObject implements ChatServer_itf {
 
     private static final String HISTORY_FILE_PATH = "history.txt";
@@ -31,8 +30,9 @@ public class ChatServer extends UnicastRemoteObject implements ChatServer_itf {
         broadcastNotification("*" + client.getName() + " has joined the chat*");
         client.notify("Welcome to the chat, " + client.getName() + "!");
         client.notify("Type '/exit' to leave the chat.");
-        client.notify("Type '/history <number of messages>' to see previous messages. If no number is given, all messages will be shown.\n");
-        return clients.size()-1;
+        client.notify(
+                "Type '/history <number of messages>' to see previous messages. If no number is given, all messages will be shown.\n");
+        return clients.size() - 1;
     }
 
     @Override
@@ -81,64 +81,64 @@ public class ChatServer extends UnicastRemoteObject implements ChatServer_itf {
     private static void loadAllMessagesFromFile() {
         try (BufferedReader reader = new BufferedReader(new FileReader(HISTORY_FILE_PATH))) {
             String line;
-            while ((line = reader.readLine()) != null) { 
+            while ((line = reader.readLine()) != null) {
                 String[] parts = line.split(";");
-                if(parts.length<3){
+                if (parts.length < 3) {
                     continue;
                 }
-                if(parts.length>3){
+                if (parts.length > 3) {
                     parts[2] = parts[2];
-                    for(int i=3; i<parts.length; i++){
+                    for (int i = 3; i < parts.length; i++) {
                         parts[2] = parts[2] + parts[i];
                     }
                 }
                 long timestamp = Long.parseLong(parts[0]);
                 String username = parts[1];
                 String text = parts[2];
-                if(text.equals("START OF NEW SESSION")){
+                if (text.equals("START OF NEW SESSION")) {
                     continue;
                 }
-                messages.add(new Message( text, username,new Date(timestamp)));
+                messages.add(new Message(text, username, new Date(timestamp)));
             }
         } catch (IOException e) {
             System.err.println("Error loading messages from file: " + e.getMessage());
         }
     }
+
     private static void loadSessionMessagesFromFile() {
         List<Message> reversedMessages = new ArrayList<>();
-        try (RandomAccessFile file = new RandomAccessFile(HISTORY_FILE_PATH,"r")) {
-            
-            //read the file from the end 
+        try (RandomAccessFile file = new RandomAccessFile(HISTORY_FILE_PATH, "r")) {
+
+            // read the file from the end
             long currentPosition = 0L;
             String line;
 
-            while ((currentPosition = file.readLine().length()) < file.length()){
+            while ((currentPosition = file.readLine().length()) < file.length()) {
                 file.seek(currentPosition);
                 line = file.readLine();
 
-                int session=0;
+                int session = 0;
                 String[] parts = line.split(";");
-                if(parts.length<3){
+                if (parts.length < 3) {
                     continue;
                 }
-                if(parts.length>3){
+                if (parts.length > 3) {
                     parts[2] = parts[2];
-                    for(int i=3; i<parts.length; i++){
+                    for (int i = 3; i < parts.length; i++) {
                         parts[2] = parts[2] + parts[i];
                     }
                 }
                 long timestamp = Long.parseLong(parts[0]);
                 String username = parts[1];
                 String text = parts[2];
-                if(text.equals("START OF NEW SESSION")){
+                if (text.equals("START OF NEW SESSION")) {
                     session++;
-                    if(session==1){
+                    if (session == 1) {
                         break;
                     }
                     continue;
-                    
-                }
-                else if (session==1){
+
+                } else if (session == 1) {
                     reversedMessages.add(new Message(text, username, new Date(timestamp)));
                 }
             }
@@ -199,6 +199,7 @@ public class ChatServer extends UnicastRemoteObject implements ChatServer_itf {
             } 
             else if (answer.toLowerCase().equals("p")){
                 loadSessionMessagesFromFile();
+            }
 
             else{
                 BufferedWriter writer = new BufferedWriter(new FileWriter(HISTORY_FILE_PATH, true));
@@ -208,7 +209,7 @@ public class ChatServer extends UnicastRemoteObject implements ChatServer_itf {
             System.out.println("No chat history loaded.");   
 
         }
-            }
+            
             
 
             
