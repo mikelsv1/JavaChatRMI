@@ -127,6 +127,9 @@ public class ChatServer extends UnicastRemoteObject implements ChatServer_itf {
                         parts[2] = parts[2] + parts[i];
                     }
                 }
+                if (parts.length < 3) {
+                    continue;
+                }
                 long timestamp = Long.parseLong(parts[0]);
                 String username = parts[1];
                 String text = parts[2];
@@ -142,7 +145,7 @@ public class ChatServer extends UnicastRemoteObject implements ChatServer_itf {
     public static void main(String[] args) {
         try {
             if (args.length != 2) {
-                //String line;
+                // String line;
                 System.out.println("Usage: java ChatServer <host> <port>");
                 System.exit(0);
             }
@@ -156,33 +159,34 @@ public class ChatServer extends UnicastRemoteObject implements ChatServer_itf {
             System.out.println("ChatServer is running...");
 
             try {
-                //BufferedReader reader = new BufferedReader(new FileReader(HISTORY_FILE_PATH));
-                //String line;
-                System.out.println("Do you want to load the chat history h, the chat history from previous session p or start a new session? [h/p/n]");
+                // BufferedReader reader = new BufferedReader(new
+                // FileReader(HISTORY_FILE_PATH));
+                // String line;
+                System.out.println(
+                        "Do you want to load the chat history h, the chat history from previous session p or start a new session? [h/p/n]");
                 BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
                 String answer = br.readLine();
-                if (answer.toLowerCase().equals("h")) { 
+                if (answer.toLowerCase().equals("h")) {
                     loadAllMessagesFromFile();
 
-            } 
-            else if (answer.toLowerCase().equals("p")){
-                loadSessionMessagesFromFile();
-            }
+                } else if (answer.toLowerCase().equals("p")) {
+                    loadSessionMessagesFromFile();
+                }
 
-            else if(answer.toLowerCase().equals("n")){
-                BufferedWriter writer = new BufferedWriter(new FileWriter(HISTORY_FILE_PATH, true));
-                String timestamp = new Date().getTime() + "";
-                writer.write(timestamp + ";" + "SERVER" + ";" + "START OF NEW SESSION\n");
-                writer.close();
-            System.out.println("No chat history loaded.");   
-            }
+                else if (answer.toLowerCase().equals("n")) {
+                    BufferedWriter writer = new BufferedWriter(new FileWriter(HISTORY_FILE_PATH, true));
+                    String timestamp = new Date().getTime() + "";
+                    writer.write(timestamp + ";" + "SERVER" + ";" + "START OF NEW SESSION\n");
+                    writer.close();
+                    System.out.println("No chat history loaded.");
+                }
 
-        } catch (IOException e) {
-            System.err.println("Error loading messages from file: " + e.getMessage());            
-        } catch (Exception e) {
-            e.printStackTrace();
+            } catch (IOException e) {
+                System.err.println("Error loading messages from file: " + e.getMessage());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        } catch (RemoteException e) {
         }
-    } catch (RemoteException e) {
     }
-}
 }
