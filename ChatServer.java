@@ -121,18 +121,19 @@ public class ChatServer extends UnicastRemoteObject implements ChatServer_itf {
             }
             for (String message : messagesFromLastSession) {
                 String[] parts = message.split(";");
+                long timestamp = Long.parseLong(parts[0]);
+                String username = parts[1];
+                String text = "";
                 if (parts.length > 3) {
                     parts[2] = parts[2];
                     for (int i = 3; i < parts.length; i++) {
                         parts[2] = parts[2] + parts[i];
                     }
+                    text = parts[2];
                 }
                 if (parts.length < 3) {
-                    continue;
+                    text = "";                    
                 }
-                long timestamp = Long.parseLong(parts[0]);
-                String username = parts[1];
-                String text = parts[2];
                 messages.add(new Message(text, username, new Date(timestamp)));
             }
             reader.close();
