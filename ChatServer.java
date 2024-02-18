@@ -4,7 +4,6 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.RandomAccessFile;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -106,49 +105,38 @@ public class ChatServer extends UnicastRemoteObject implements ChatServer_itf {
     }
 
     private static void loadSessionMessagesFromFile() {
-        List<Message> reversedMessages = new ArrayList<>();
-        try (RandomAccessFile file = new RandomAccessFile(HISTORY_FILE_PATH, "r")) {
-
-            // read the file from the end
-            long currentPosition = 0L;
-            String line;
-
-            while ((currentPosition = file.readLine().length()) < file.length()) {
-                file.seek(currentPosition);
-                line = file.readLine();
-
-                int session = 0;
-                String[] parts = line.split(";");
-                if (parts.length < 3) {
-                    continue;
-                }
-                if (parts.length > 3) {
-                    parts[2] = parts[2];
-                    for (int i = 3; i < parts.length; i++) {
-                        parts[2] = parts[2] + parts[i];
-                    }
-                }
-                long timestamp = Long.parseLong(parts[0]);
-                String username = parts[1];
-                String text = parts[2];
-                if (text.equals("START OF NEW SESSION")) {
-                    session++;
-                    if (session == 1) {
-                        break;
-                    }
-                    continue;
-
-                } else if (session == 1) {
-                    reversedMessages.add(new Message(text, username, new Date(timestamp)));
-                }
+        try{
+        BufferedReader reader = new BufferedReader(new FileReader(HISTORY_FILE_PATH));
+        String line;
+        boolean previousSession = false; 
+        List<String> messagesFromLastSession = new ArrayList<>();
+        while ((line = reader.readLine()) != null) {
+            if (previousSession) {
+                messagesFromLastSession.add(line);
             }
-            for (int i = reversedMessages.size() - 1; i >= 0; i--) {
-                messages.add(reversedMessages.get(i));
+            if (line.contains("START OF NEW SESSION")) {
+                previousSession = true;
+                messagesFromLastSession.clear();
             }
-
-        } catch (IOException e) {
-            System.err.println("Error loading messages from file: " + e.getMessage());
         }
+        for (String message : messagesFromLastSession) {
+            String[] parts = message.split(";");
+            if (parts.length > 3) {
+                parts[2] = parts[2];
+                for (int i = 3; i < parts.length; i++) {
+                    parts[2] = parts[2] + parts[i];
+                }
+            }
+            long timestamp = Long.parseLong(parts[0]);
+            String username = parts[1];
+            String text = parts[2];
+            messages.add(new Message(text, username, new Date(timestamp)));
+        }
+        reader.close();
+    }
+    catch (IOException e) {
+        System.err.println("Error loading messages from file: " + e.getMessage());
+        
     }
 
     public static void main(String[] args) {
