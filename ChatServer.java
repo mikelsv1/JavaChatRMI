@@ -3,10 +3,7 @@ import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.rmi.RemoteException;
-import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.Date;
@@ -189,12 +186,16 @@ public class ChatServer extends UnicastRemoteObject implements ChatServer_itf {
                 loadSessionMessagesFromFile();
             }
 
-            else{
+            else if(answer.toLowerCase().equals("n")){
                 BufferedWriter writer = new BufferedWriter(new FileWriter(HISTORY_FILE_PATH, true));
                 String timestamp = new Date().getTime() + "";
                 writer.write(timestamp + ";" + "SERVER" + ";" + "START OF NEW SESSION\n");
                 writer.close();
             System.out.println("No chat history loaded.");   
+            }
+            else{
+                System.out.println("Invalid input. No chat history loaded.");
+            }
 
         }
             
