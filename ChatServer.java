@@ -3,7 +3,10 @@ import java.io.BufferedWriter;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.rmi.RemoteException;
+import java.rmi.registry.LocateRegistry;
+import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.Date;
@@ -102,38 +105,38 @@ public class ChatServer extends UnicastRemoteObject implements ChatServer_itf {
     }
 
     private static void loadSessionMessagesFromFile() {
-        try{
-        BufferedReader reader = new BufferedReader(new FileReader(HISTORY_FILE_PATH));
-        String line;
-        boolean previousSession = false; 
-        List<String> messagesFromLastSession = new ArrayList<>();
-        while ((line = reader.readLine()) != null) {
-            if (previousSession) {
-                messagesFromLastSession.add(line);
-            }
-            if (line.contains("START OF NEW SESSION")) {
-                previousSession = true;
-                messagesFromLastSession.clear();
-            }
-        }
-        for (String message : messagesFromLastSession) {
-            String[] parts = message.split(";");
-            if (parts.length > 3) {
-                parts[2] = parts[2];
-                for (int i = 3; i < parts.length; i++) {
-                    parts[2] = parts[2] + parts[i];
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader(HISTORY_FILE_PATH));
+            String line;
+            boolean previousSession = false;
+            List<String> messagesFromLastSession = new ArrayList<>();
+            while ((line = reader.readLine()) != null) {
+                if (previousSession) {
+                    messagesFromLastSession.add(line);
+                }
+                if (line.contains("START OF NEW SESSION")) {
+                    previousSession = true;
+                    messagesFromLastSession.clear();
                 }
             }
-            long timestamp = Long.parseLong(parts[0]);
-            String username = parts[1];
-            String text = parts[2];
-            messages.add(new Message(text, username, new Date(timestamp)));
+            for (String message : messagesFromLastSession) {
+                String[] parts = message.split(";");
+                if (parts.length > 3) {
+                    parts[2] = parts[2];
+                    for (int i = 3; i < parts.length; i++) {
+                        parts[2] = parts[2] + parts[i];
+                    }
+                }
+                long timestamp = Long.parseLong(parts[0]);
+                String username = parts[1];
+                String text = parts[2];
+                messages.add(new Message(text, username, new Date(timestamp)));
+            }
+            reader.close();
+        } catch (IOException e) {
+            System.err.println("Error loading messages from file: " + e.getMessage());
+
         }
-        reader.close();
-    }
-    catch (IOException e) {
-        System.err.println("Error loading messages from file: " + e.getMessage());
-        
     }
 
     public static void main(String[] args) {
@@ -143,6 +146,7 @@ public class ChatServer extends UnicastRemoteObject implements ChatServer_itf {
                 System.out.println("Usage: java ChatServer <host> <port>");
                 System.exit(0);
             }
+
             String host = args[0];
             int port = Integer.parseInt(args[1]);
 
@@ -160,27 +164,6 @@ public class ChatServer extends UnicastRemoteObject implements ChatServer_itf {
                 if (answer.toLowerCase().equals("h")) { 
                     loadAllMessagesFromFile();
 
-                    /*boolean previousSession = false; 
-                    List<String> messagesFromLastSession = new ArrayList<>();
-                    while ((line = reader.readLine()) != null) {
-                        if (previousSession) {
-                            messagesFromLastSession.add(line);
-                        }
-                        if (line.contains("START OF NEW SESSION")) {
-                            previousSession = true;
-                            messagesFromLastSession.clear();
-                        }
-                    }
-                    for (String message : messagesFromLastSession) {
-                        String[] parts = message.split(";");
-                        long timestamp = Long.parseLong(parts[0]);
-                        String username = parts[1];
-                        String text = parts[2];
-                        chatServer.messages.add(new Message(text, username, new Date(timestamp)));
-                    }
-                    
-                }
-                reader.close();*/
             } 
             else if (answer.toLowerCase().equals("p")){
                 loadSessionMessagesFromFile();
@@ -193,21 +176,13 @@ public class ChatServer extends UnicastRemoteObject implements ChatServer_itf {
                 writer.close();
             System.out.println("No chat history loaded.");   
             }
-            else{
-                System.out.println("Invalid input. No chat history loaded.");
-            }
 
-        }
-            
-            
-
-            
+        } catch (IOException e) {
+            System.err.println("Error loading messages from file: " + e.getMessage());            
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-    catch (Exception e) {
-        e.printStackTrace();
+    } catch (RemoteException e) {
     }
 }
 }
